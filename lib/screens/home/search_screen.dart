@@ -4,6 +4,7 @@ import 'package:chat_app/screens/home/chat_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../model/chatroom_model.dart';
@@ -74,10 +75,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.sizeOf(context).height;
+    double width = MediaQuery.sizeOf(context).width;
     return SafeArea(
       child: Scaffold(
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          padding: EdgeInsets.symmetric(
+            horizontal: width * 0.05,
+            vertical: height * 0.01,
+          ),
           child: Column(
             children: [
               TextField(
@@ -96,7 +102,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: StreamBuilder(
                   stream: FirebaseFirestore.instance
                       .collection("users")
-                      .where("email", isEqualTo: searchText.toString())
                       .where("email", isNotEqualTo: widget.userModel.email)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -106,13 +111,20 @@ class _SearchScreenState extends State<SearchScreen> {
                       );
                     } else {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return Container();
                       } else {
-                        List response = snapshot.data!.docs;
+                        List responseData = snapshot.data!.docs;
+                        List response = responseData
+                            .where((element) => element["name"]
+                                .toString()
+                                .toLowerCase()
+                                .contains(searchText.toString().toLowerCase()))
+                            .toList();
                         return ListView.builder(
                           itemCount: response.length,
+                          padding: EdgeInsets.symmetric(
+                            vertical: height * 0.02,
+                          ),
                           itemBuilder: (context, index) {
                             var data = response[index];
                             return ListTile(
@@ -122,18 +134,17 @@ class _SearchScreenState extends State<SearchScreen> {
 
                                 if (chatRoomModel != null) {
                                   log("chateRoomModel is not null");
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ChatScreen(
-                                          chatRoomModel: chatRoomModel,
-                                          targetUserName:
-                                              data["name"].toString(),
-                                        ),
-                                      ));
+                                  Get.back();
+                                  Get.to(
+                                    () => ChatScreen(
+                                      chatRoomModel: chatRoomModel,
+                                      targetUserName: data["name"].toString(),
+                                      targetUserPhotoUrl:
+                                          data["profile_picture"].toString(),
+                                    ),
+                                  );
                                 } else {
-                                  log("chateRoomModel is Null");
+                                  log("chatRoomModel is Null");
                                 }
                               },
                               title: Text(data["name"].toString()),

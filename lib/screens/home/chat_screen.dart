@@ -1,16 +1,28 @@
+import 'dart:developer';
+
 import 'package:chat_app/model/chatroom_model.dart';
 import 'package:chat_app/model/user_model.dart';
+import 'package:chat_app/screens/widgets/common_progress_indicator.dart';
+import 'package:chat_app/utils/app_color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+
+import '../widgets/common_cache_network_image.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatRoomModel chatRoomModel;
   final String targetUserName;
-  const ChatScreen(
-      {super.key, required this.chatRoomModel, required this.targetUserName});
+  final String targetUserPhotoUrl;
+  const ChatScreen({
+    super.key,
+    required this.chatRoomModel,
+    required this.targetUserName,
+    required this.targetUserPhotoUrl,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -65,14 +77,52 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.sizeOf(context).height;
+    double width = MediaQuery.sizeOf(context).width;
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text(widget.targetUserName.toString()),
-        ),
         body: Column(
           children: [
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_outlined,
+                    size: 18,
+                  ),
+                ),
+                ClipOval(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    child: widget.targetUserPhotoUrl != null &&
+                            widget.targetUserPhotoUrl != ""
+                        ? CommonCacheNetworkImage(
+                            imageUrl: widget.targetUserPhotoUrl.toString(),
+                          )
+                        : Text(
+                            widget.targetUserName[0].toUpperCase().toString(),
+                            style: const TextStyle(
+                              color: AppColor.white,
+                              fontSize: 19,
+                            ),
+                          ),
+                  ),
+                ),
+                SizedBox(
+                  width: width * 0.02,
+                ),
+                Expanded(
+                  child: Text(
+                    widget.targetUserName.toString(),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
             widget.chatRoomModel.id != '' && widget.chatRoomModel.id != null
                 ? Expanded(
                     child: StreamBuilder(
@@ -109,64 +159,150 @@ class _ChatScreenState extends State<ChatScreen> {
                                               .update({
                                             "isSeen": true,
                                           }).then((value) {
-                                            print("is seen true");
+                                            log("is seen true");
                                           });
                                         }
                                       }
-                                      return Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          mainAxisAlignment: data["sender"] ==
-                                                  FirebaseAuth
-                                                      .instance.currentUser!.uid
-                                              ? MainAxisAlignment.end
-                                              : MainAxisAlignment.start,
-                                          children: [
-                                            Column(
-                                              children: [
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 20,
-                                                      vertical: 10),
-                                                  color: data["sender"] ==
-                                                          FirebaseAuth.instance
-                                                              .currentUser!.uid
-                                                      ? Colors.blue
-                                                      : Colors.grey,
-                                                  child: Text(
-                                                    data["message"].toString(),
-                                                    style: const TextStyle(
-                                                        color: Colors.white),
-                                                  ),
+                                      return GestureDetector(
+                                        onTap: () {},
+                                        onLongPress: () async {
+                                          log(res.first
+                                              .data()["message"]
+                                              .toString());
+                                          if (data["sender"].toString() ==
+                                              FirebaseAuth
+                                                  .instance.currentUser!.uid
+                                                  .toString()) {
+                                            log(res.first
+                                                .data()["message"]
+                                                .toString());
+                                            await FirebaseFirestore.instance
+                                                .collection("chatRoom")
+                                                .doc(widget.chatRoomModel.id)
+                                                .collection("message")
+                                                .doc(res[index].id)
+                                                .delete()
+                                                .then((value) async {
+                                              await FirebaseFirestore.instance
+                                                  .collection("chatRoom")
+                                                  .doc(widget.chatRoomModel.id)
+                                                  .update({
+                                                "last_message": res.length == 1
+                                                    ? ""
+                                                    : snapshot.data!.docs[1]
+                                                        .data()["message"]
+                                                        .toString(),
+                                                "last_message_time": Timestamp
+                                                    .fromMillisecondsSinceEpoch(
+                                                  DateTime.now()
+                                                      .millisecondsSinceEpoch,
                                                 ),
-                                                Text(
-                                                  DateFormat("hh:mm a")
-                                                      .format(
-                                                        DateTime
-                                                            .fromMillisecondsSinceEpoch(
-                                                          data["time"]
-                                                              .millisecondsSinceEpoch,
+                                              });
+                                            });
+                                          } else {
+                                            log("can not delete");
+                                          }
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 8,
+                                            right: 8,
+                                            top: 5,
+                                            bottom: 5,
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    data["sender"] ==
+                                                            FirebaseAuth
+                                                                .instance
+                                                                .currentUser!
+                                                                .uid
+                                                        ? MainAxisAlignment.end
+                                                        : MainAxisAlignment
+                                                            .start,
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      20,
+                                                    ),
+                                                    child: LimitedBox(
+                                                      maxWidth: width * 0.65,
+                                                      child: Container(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                          left: width * 0.05,
+                                                          right: width * 0.03,
+                                                          top: height * 0.01,
+                                                          bottom: height * 0.01,
                                                         ),
-                                                      )
-                                                      .toString(),
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                        color: data["sender"] ==
+                                                                FirebaseAuth
+                                                                    .instance
+                                                                    .currentUser!
+                                                                    .uid
+                                                            ? Colors.blue
+                                                            : AppColor.grey
+                                                                .withOpacity(
+                                                                0.5,
+                                                              ),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Text(
+                                                              data["message"]
+                                                                  .toString(),
+                                                              style:
+                                                                  const TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                            ),
+                                                            SizedBox(
+                                                              width:
+                                                                  width * 0.01,
+                                                            ),
+                                                            data["sender"] ==
+                                                                    FirebaseAuth
+                                                                        .instance
+                                                                        .currentUser!
+                                                                        .uid
+                                                                ? data["isSeen"] ==
+                                                                        true
+                                                                    ? const Icon(
+                                                                        Icons
+                                                                            .done,
+                                                                        size:
+                                                                            15,
+                                                                      )
+                                                                    : Container()
+                                                                : Container(),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              // Row(
+                                              //   mainAxisAlignment:
+                                              //       MainAxisAlignment.end,
+                                              //   children: [
+                                              //
+                                              //   ],
+                                              // ),
+                                            ],
+                                          ),
                                         ),
                                       );
                                     },
                                   )
-                                : const Center(
-                                    child: Text("No msg"),
-                                  );
+                                : Container();
                           } else {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
+                            return const CommonCircularProgressIndicator();
                           }
                         }
                       },
@@ -190,6 +326,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             contentPadding:
                                 EdgeInsets.symmetric(horizontal: 20),
                             border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
                             hintText: "Type msg...",
                           ),
                         ),
@@ -203,6 +343,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     icon: const Icon(
                       Icons.telegram_outlined,
                       size: 45,
+                      color: AppColor.white,
                     ),
                   ),
                 ],

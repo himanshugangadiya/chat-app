@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class CommonElevatedButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String labelText;
+  final double height;
+
   const CommonElevatedButton({
     super.key,
     required this.height,
@@ -10,15 +12,13 @@ class CommonElevatedButton extends StatelessWidget {
     required this.labelText,
   });
 
-  final double height;
-
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: SizedBox(
-            height: height * 0.06,
+            height: height,
             child: ElevatedButton(
               onPressed: onPressed,
               child: Text(labelText.toString()),

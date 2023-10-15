@@ -42,6 +42,14 @@ dependencies:
   intl: ^0.18.1
   get: ^4.6.6
   fluttertoast: ^8.2.2
+  animated_dashed_circle: ^0.0.4
+  image_picker: ^1.0.4
+  image_cropper: ^5.0.0
+  firebase_storage: ^11.2.8
+  get_storage: ^2.1.1
+  cached_network_image: ^3.3.0
+  story_view: ^0.15.0
+  animated_text_kit: ^4.2.2
 
 dev_dependencies:
   flutter_test:
