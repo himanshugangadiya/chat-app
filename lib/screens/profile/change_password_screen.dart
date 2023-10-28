@@ -1,8 +1,8 @@
-import 'package:chat_app/controller/change_password_controller.dart';
-import 'package:chat_app/screens/widgets/close_keyboard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controller/change_password_controller.dart';
+import '../widgets/close_keyboard.dart';
 import '../widgets/common_elevated_button.dart';
 import '../widgets/common_progress_indicator.dart';
 
@@ -34,7 +34,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.sizeOf(context).height;
-    double width = MediaQuery.sizeOf(context).width;
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,

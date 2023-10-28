@@ -1,10 +1,9 @@
-import 'package:chat_app/controller/change_password_controller.dart';
-import 'package:chat_app/controller/log_in_controller.dart';
-import 'package:chat_app/screens/widgets/close_keyboard.dart';
-import 'package:chat_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controller/log_in_controller.dart';
+import '../../utils/app_color.dart';
+import '../widgets/close_keyboard.dart';
 import '../widgets/common_elevated_button.dart';
 import '../widgets/common_progress_indicator.dart';
 
@@ -72,7 +71,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 height: height * 0.03,
               ),
               const Text(
-                "if your email address is exist  password reset email will sent to your email address.",
+                "if your email address is exist password reset email will sent to your email address.",
                 style: TextStyle(
                   color: AppColor.grey,
                 ),

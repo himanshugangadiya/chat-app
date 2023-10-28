@@ -21,6 +21,8 @@ class CommonTextFiled extends StatelessWidget {
       decoration: InputDecoration(
         labelText: labelText.toString(),
       ),
+      onTapOutside: (event) => FocusScope.of(context).unfocus(),
+
     );
   }
 }

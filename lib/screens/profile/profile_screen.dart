@@ -1,19 +1,15 @@
-import 'dart:developer';
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chat_app/controller/home_controller.dart';
-import 'package:chat_app/controller/log_in_controller.dart';
-import 'package:chat_app/controller/profile_controller.dart';
 import 'package:chat_app/screens/profile/settings_screen.dart';
-import 'package:chat_app/screens/widgets/common_elevated_button.dart';
-import 'package:chat_app/screens/widgets/common_progress_indicator.dart';
-import 'package:chat_app/screens/widgets/common_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controller/home_controller.dart';
+import '../../controller/log_in_controller.dart';
+import '../../controller/profile_controller.dart';
 import '../../utils/app_color.dart';
-import '../home/home_screen.dart';
 import '../widgets/common_cache_network_image.dart';
+import '../widgets/common_elevated_button.dart';
+import '../widgets/common_progress_indicator.dart';
+import '../widgets/common_text_field.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -148,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         top: 94,
                         child: GestureDetector(
                           onTap: () {
-                            profileController.pickImageFromGallery();
+                            profileController.cameraPermission();
                           },
                           child: const CircleAvatar(
                             radius: 14,

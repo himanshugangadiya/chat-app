@@ -1,10 +1,9 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:chat_app/screens/authentication/login_screen.dart';
-import 'package:chat_app/screens/home/home_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../controller/log_in_controller.dart';
+import '../helper/internet_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,21 +13,20 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  checkCurrentUser() {
-    if (FirebaseAuth.instance.currentUser != null) {
-      Get.offAll(() => const HomeScreen());
-    } else {
-      Get.offAll(() => const LoginScreen());
-    }
-  }
+  InternetController internetController = Get.put(
+    InternetController(),
+    permanent: true,
+  );
+  LogInController logInController = Get.put(LogInController());
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    internetController.checkRealtimeConnection();
     Future.delayed(
       const Duration(seconds: 3),
-      () => checkCurrentUser(),
+      () => logInController.checkCurrentUser(),
     );
   }
 

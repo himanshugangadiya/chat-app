@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:chat_app/screens/home/chat_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,8 @@ import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../model/chatroom_model.dart';
+import '../../utils/app_color.dart';
+import 'chat_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final dynamic userModel;
@@ -37,8 +38,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (snapshot.docs.length > 0) {
       var data = snapshot.docs[0].data();
-      print(data.toString());
-      print("already chatroom created ...............");
+      log(data.toString());
+      log("already chatroom created ...............");
       ChatRoomModel existingModel =
           ChatRoomModel.fromMap(data as Map<String, dynamic>);
       tempChatRoomModel = existingModel;
@@ -63,9 +64,9 @@ class _SearchScreenState extends State<SearchScreen> {
           .doc(newChatRoom.id.toString())
           .set(newChatRoom.toMap())
           .then((value) {
-        print("New chatroom created ...............");
+        log("New chatroom created ...............");
       }).catchError((e) {
-        print(e.toString());
+        log(e.toString());
       });
 
       tempChatRoomModel = newChatRoom;
@@ -81,21 +82,28 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Scaffold(
         body: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: width * 0.05,
+            // horizontal: width * 0.05,
             vertical: height * 0.01,
           ),
           child: Column(
             children: [
-              TextField(
-                controller: searchController,
-                onChanged: (val) {
-                  setState(() {
-                    searchText = val;
-                  });
-                },
-                decoration: const InputDecoration(
-                  hintText: "Search...",
-                  prefixIcon: Icon(Icons.search),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.05,
+                  vertical: height * 0.01,
+                ),
+                child: TextField(
+                  controller: searchController,
+                  onChanged: (val) {
+                    setState(() {
+                      searchText = val;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    hintText: "Search...",
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 ),
               ),
               Expanded(
@@ -147,6 +155,23 @@ class _SearchScreenState extends State<SearchScreen> {
                                   log("chatRoomModel is Null");
                                 }
                               },
+                              leading: data["profile_picture"] != ''
+                                  ? CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        data["profile_picture"].toString(),
+                                      ),
+                                    )
+                                  : CircleAvatar(
+                                      backgroundColor: AppColor.blue,
+                                      child: Text(
+                                        data["name"]
+                                            .toString()[0]
+                                            .toUpperCase(),
+                                        style: const TextStyle(
+                                          color: AppColor.white,
+                                        ),
+                                      ),
+                                    ),
                               title: Text(data["name"].toString()),
                               subtitle: Text(data["email"].toString()),
                             );

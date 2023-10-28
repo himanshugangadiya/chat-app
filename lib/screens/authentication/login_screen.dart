@@ -1,22 +1,17 @@
 import 'dart:developer';
 
-import 'package:chat_app/controller/log_in_controller.dart';
-import 'package:chat_app/model/user_model.dart';
-import 'package:chat_app/screens/authentication/forgot_password_screen.dart';
 import 'package:chat_app/screens/authentication/sign_up_screen.dart';
-import 'package:chat_app/screens/widgets/close_keyboard.dart';
-import 'package:chat_app/screens/widgets/common_elevated_button.dart';
-import 'package:chat_app/screens/widgets/common_text_field.dart';
-import 'package:chat_app/utils/app_color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../home/home_screen.dart';
+import '../../controller/log_in_controller.dart';
+import '../../utils/app_color.dart';
+import '../widgets/close_keyboard.dart';
+import '../widgets/common_elevated_button.dart';
 import '../widgets/common_progress_indicator.dart';
+import '../widgets/common_text_field.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,14 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     closeKeyboard();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     loginInController.clearController();
     closeKeyboard();
@@ -46,7 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.sizeOf(context).height;
-    double width = MediaQuery.sizeOf(context).width;
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -115,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const CommonCircularProgressIndicator()
                       : CommonElevatedButton(
                           onPressed: () {
-                            controller.logIn();
+                            controller.logInValidation();
                           },
                           labelText: "Log in",
                           height: height * 0.06,

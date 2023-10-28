@@ -1,17 +1,17 @@
 import 'dart:developer';
 
-import 'package:chat_app/model/chatroom_model.dart';
-import 'package:chat_app/model/user_model.dart';
-import 'package:chat_app/screens/widgets/common_progress_indicator.dart';
-import 'package:chat_app/utils/app_color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../model/chatroom_model.dart';
+import '../../utils/app_color.dart';
 import '../widgets/common_cache_network_image.dart';
+import '../widgets/common_progress_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatRoomModel chatRoomModel;
@@ -34,7 +34,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   sendMessage() {
     String newMsgId = uuid.v1();
-    if (messageController.text.isNotEmpty && messageController.text != '') {
+    if (messageController.text.trim().isNotEmpty &&
+        messageController.text.trim() != '') {
       try {
         FirebaseFirestore.instance
             .collection("chatRoom")
@@ -140,6 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         } else {
                           if (snapshot.hasData) {
                             var res = snapshot.data!.docs;
+
                             return res.isNotEmpty
                                 ? ListView.builder(
                                     shrinkWrap: true,
@@ -164,44 +166,74 @@ class _ChatScreenState extends State<ChatScreen> {
                                         }
                                       }
                                       return GestureDetector(
-                                        onTap: () {},
-                                        onLongPress: () async {
-                                          log(res.first
-                                              .data()["message"]
-                                              .toString());
-                                          if (data["sender"].toString() ==
-                                              FirebaseAuth
-                                                  .instance.currentUser!.uid
-                                                  .toString()) {
-                                            log(res.first
-                                                .data()["message"]
-                                                .toString());
-                                            await FirebaseFirestore.instance
-                                                .collection("chatRoom")
-                                                .doc(widget.chatRoomModel.id)
-                                                .collection("message")
-                                                .doc(res[index].id)
-                                                .delete()
-                                                .then((value) async {
-                                              await FirebaseFirestore.instance
-                                                  .collection("chatRoom")
-                                                  .doc(widget.chatRoomModel.id)
-                                                  .update({
-                                                "last_message": res.length == 1
-                                                    ? ""
-                                                    : snapshot.data!.docs[1]
+                                        onTap: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) =>
+                                                CupertinoAlertDialog(
+                                              title: GestureDetector(
+                                                onTap: () async {
+                                                  log(res.first
+                                                      .data()["message"]
+                                                      .toString());
+                                                  if (data["sender"]
+                                                          .toString() ==
+                                                      FirebaseAuth.instance
+                                                          .currentUser!.uid
+                                                          .toString()) {
+                                                    log(res.first
                                                         .data()["message"]
-                                                        .toString(),
-                                                "last_message_time": Timestamp
-                                                    .fromMillisecondsSinceEpoch(
-                                                  DateTime.now()
-                                                      .millisecondsSinceEpoch,
+                                                        .toString());
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection("chatRoom")
+                                                        .doc(widget
+                                                            .chatRoomModel.id)
+                                                        .collection("message")
+                                                        .doc(res[index].id)
+                                                        .delete()
+                                                        .then((value) async {
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection(
+                                                              "chatRoom")
+                                                          .doc(widget
+                                                              .chatRoomModel.id)
+                                                          .update({
+                                                        "last_message": res
+                                                                    .length ==
+                                                                1
+                                                            ? ""
+                                                            : snapshot
+                                                                .data!.docs[1]
+                                                                .data()[
+                                                                    "message"]
+                                                                .toString(),
+                                                        "last_message_time":
+                                                            Timestamp
+                                                                .fromMillisecondsSinceEpoch(
+                                                          DateTime.now()
+                                                              .millisecondsSinceEpoch,
+                                                        ),
+                                                      }).then(
+                                                        (value) =>
+                                                            Navigator.pop(
+                                                                context),
+                                                      );
+                                                    });
+                                                  } else {
+                                                    log("can not delete");
+                                                  }
+                                                },
+                                                child: Text(
+                                                  "Unseen message",
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium,
                                                 ),
-                                              });
-                                            });
-                                          } else {
-                                            log("can not delete");
-                                          }
+                                              ),
+                                            ),
+                                          );
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.only(
@@ -226,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   ClipRRect(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                      20,
+                                                      8,
                                                     ),
                                                     child: LimitedBox(
                                                       maxWidth: width * 0.65,
@@ -235,8 +267,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                                             EdgeInsets.only(
                                                           left: width * 0.05,
                                                           right: width * 0.03,
-                                                          top: height * 0.01,
-                                                          bottom: height * 0.01,
+                                                          top: height * 0.007,
+                                                          bottom:
+                                                              height * 0.007,
                                                         ),
                                                         color: data["sender"] ==
                                                                 FirebaseAuth
@@ -287,22 +320,70 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   ),
                                                 ],
                                               ),
-                                              // Row(
-                                              //   mainAxisAlignment:
-                                              //       MainAxisAlignment.end,
-                                              //   children: [
-                                              //
-                                              //   ],
-                                              // ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    data["sender"] ==
+                                                            FirebaseAuth
+                                                                .instance
+                                                                .currentUser!
+                                                                .uid
+                                                        ? MainAxisAlignment.end
+                                                        : MainAxisAlignment
+                                                            .start,
+                                                children: [
+                                                  Text(
+                                                    DateFormat("hh:mm").format(
+                                                      DateTime
+                                                          .fromMicrosecondsSinceEpoch(
+                                                        data["time"]
+                                                            .microsecondsSinceEpoch,
+                                                      ),
+                                                    ),
+                                                    style: const TextStyle(
+                                                      color: AppColor.grey,
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),
                                       );
                                     },
                                   )
-                                : Container();
+                                : Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          "Say! hi to your friend",
+                                          style: TextStyle(
+                                            color: AppColor.blue,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        OutlinedButton(
+                                          onPressed: () {
+                                            messageController =
+                                                TextEditingController(
+                                              text: "hello",
+                                            );
+                                            sendMessage();
+                                          },
+                                          style: OutlinedButton.styleFrom(
+                                            shape: const StadiumBorder(),
+                                          ),
+                                          child: const Text("hello"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                           } else {
-                            return const CommonCircularProgressIndicator();
+                            return Container();
                           }
                         }
                       },

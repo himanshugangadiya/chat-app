@@ -1,13 +1,13 @@
-import 'package:chat_app/screens/authentication/login_screen.dart';
-import 'package:chat_app/utils/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../screens/authentication/login_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../utils/app_color.dart';
+import '../utils/toast.dart';
 
 class LogInController extends GetxController {
   TextEditingController emailController = TextEditingController();
@@ -24,41 +24,54 @@ class LogInController extends GetxController {
   logIn() async {
     isLoading = true;
     update();
-    if (emailController.text.trim().isNotEmpty &&
-        passwordController.text.trim().isNotEmpty) {
-      {
-        try {
-          await FirebaseAuth.instance
-              .signInWithEmailAndPassword(
-            email: emailController.text.trim().toString(),
-            password: passwordController.text.trim().toString(),
-          )
-              .then((value) async {
-            isLoading = false;
-            update();
-            await GetStorage().write("isLogin", true);
-            showToast(
-              message: "You are successfully logged in.",
-              color: AppColor.green,
-            );
-            Get.offAll(() => const HomeScreen());
-          });
-        } on FirebaseException catch (e) {
-          isLoading = false;
-          update();
-          showToast(
-            message: e.message.toString(),
-            color: Colors.red,
-          );
-        }
-      }
-    } else {
+    try {
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+        email: emailController.text.trim().toString(),
+        password: passwordController.text.trim().toString(),
+      )
+          .then((value) async {
+        isLoading = false;
+        update();
+        await GetStorage().write("isLogin", true);
+        showToast(
+          message: "You are successfully logged in.",
+          color: AppColor.green,
+        );
+        Get.offAll(() => const HomeScreen());
+      }).catchError((e) {
+        isLoading = false;
+        update();
+        showToast(
+          message: e.toString(),
+          color: AppColor.red,
+        );
+      });
+    } on FirebaseAuthException catch (e) {
       isLoading = false;
       update();
       showToast(
-        message: "Enter fields to continue",
+        message: e.message.toString(),
         color: Colors.red,
       );
+    }
+  }
+
+  logInValidation() async {
+    if (emailController.text.trim().isEmpty) {
+      {
+        showToast(
+          message: "Enter email to continue",
+          color: Colors.red,
+        );
+      }
+    } else if (passwordController.text.trim().isEmpty) {
+      showToast(
+        message: "Enter password to continue",
+        color: Colors.red,
+      );
+    } else {
+      logIn();
     }
   }
 
@@ -198,6 +211,14 @@ class LogInController extends GetxController {
       isForgotLoading = false;
       update();
       showToast(message: e.message.toString(), color: AppColor.red);
+    }
+  }
+
+  checkCurrentUser() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      Get.offAll(() => const HomeScreen());
+    } else {
+      Get.offAll(() => const LoginScreen());
     }
   }
 

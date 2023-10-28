@@ -1,13 +1,20 @@
-import 'package:chat_app/controller/log_in_controller.dart';
-import 'package:chat_app/screens/profile/change_password_screen.dart';
-import 'package:chat_app/utils/app_color.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SettingsScreen extends StatelessWidget {
+import '../../controller/log_in_controller.dart';
+import '../../controller/setting_controller.dart';
+import '../../utils/app_color.dart';
+import 'change_password_screen.dart';
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  SettingController settingController = Get.put(SettingController());
   @override
   Widget build(BuildContext context) {
     LogInController logInController = Get.put(LogInController());
@@ -44,6 +51,17 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   SizedBox(
                     height: height * 0.04,
+                  ),
+                  ListTile(
+                    onTap: () {
+                      settingController.privacyPolicy();
+                    },
+                    leading: const Icon(Icons.lock),
+                    title: const Text("Privacy policy"),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 17,
+                    ),
                   ),
                   ListTile(
                     onTap: () {
@@ -85,6 +103,13 @@ class SettingsScreen extends StatelessWidget {
                     trailing: const Icon(
                       Icons.arrow_forward_ios,
                       size: 17,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Text(
+                    "version 1.0.0",
+                    style: TextStyle(
+                      color: AppColor.grey,
                     ),
                   ),
                 ],

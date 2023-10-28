@@ -1,7 +1,6 @@
+import 'dart:developer';
 import 'dart:io';
 
-import 'package:chat_app/controller/log_in_controller.dart';
-import 'package:chat_app/screens/home/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,9 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../screens/home/home_screen.dart';
 import '../utils/app_color.dart';
 import '../utils/toast.dart';
+import 'log_in_controller.dart';
 
 class ProfileController extends GetxController {
   LogInController logInController = Get.put(LogInController());
@@ -26,6 +28,18 @@ class ProfileController extends GetxController {
   String profileImage = '';
 
   /// pick image
+  cameraPermission() async {
+    final permissionStatus = await Permission.camera.request();
+
+    if (permissionStatus.isDenied) {
+      await Permission.camera.request();
+    } else if (permissionStatus.isPermanentlyDenied) {
+      await openAppSettings();
+    } else if (permissionStatus.isGranted) {
+      pickImageFromGallery();
+    }
+  }
+
   pickImageFromGallery() async {
     XFile? pickFile = await imagePicker.pickImage(source: ImageSource.gallery);
 
@@ -34,7 +48,7 @@ class ProfileController extends GetxController {
       update();
       cropImage(File(pickFile.path));
     } else {
-      print("null ");
+      log("null ");
     }
   }
 
@@ -62,7 +76,7 @@ class ProfileController extends GetxController {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Cropper',
-          toolbarColor: Colors.deepOrange,
+          toolbarColor: AppColor.blue,
           toolbarWidgetColor: Colors.white,
           initAspectRatio: CropAspectRatioPreset.original,
           lockAspectRatio: false,

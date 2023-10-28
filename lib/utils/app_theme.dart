@@ -1,5 +1,6 @@
-import 'package:chat_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
+
+import 'app_color.dart';
 
 TextStyle commonTextStyle = const TextStyle(
   color: AppColor.white,

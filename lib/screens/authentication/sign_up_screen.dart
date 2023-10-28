@@ -1,18 +1,12 @@
 import 'dart:developer';
 
-import 'package:chat_app/controller/sign_up_controller.dart';
-import 'package:chat_app/model/user_model.dart';
-import 'package:chat_app/screens/authentication/login_screen.dart';
-import 'package:chat_app/screens/widgets/close_keyboard.dart';
-import 'package:chat_app/screens/widgets/common_progress_indicator.dart';
-import 'package:chat_app/utils/app_color.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../home/home_screen.dart';
+import '../../controller/sign_up_controller.dart';
+import '../../utils/app_color.dart';
+import '../widgets/close_keyboard.dart';
 import '../widgets/common_elevated_button.dart';
+import '../widgets/common_progress_indicator.dart';
 import '../widgets/common_text_field.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -42,7 +36,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.sizeOf(context).height;
-    double width = MediaQuery.sizeOf(context).width;
     log("sign up screen build method run");
     return SafeArea(
       child: Scaffold(
@@ -111,7 +104,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: height * 0.06,
                           labelText: "Sign up",
                           onPressed: () {
-                            signUpController.signUp();
+                            signUpController.signUpValidation();
                           },
                         );
                 },

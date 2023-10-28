@@ -1,13 +1,11 @@
 import 'dart:developer';
 
-import 'package:chat_app/controller/log_in_controller.dart';
-import 'package:chat_app/utils/app_color.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:story_view/controller/story_controller.dart';
 import 'package:story_view/story_view.dart';
 
+import '../../controller/log_in_controller.dart';
 import '../widgets/common_progress_indicator.dart';
 
 class StoryViewScreen extends StatefulWidget {
