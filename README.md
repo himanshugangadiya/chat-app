@@ -1,5 +1,7 @@
 # chat_app
 
+create chat app using firebase authentication, firebase storage and firestore.
+
 Authentication
 
 ![Blue Pink Gradient Fashion Banner](https://github.com/himanshugangadiya/chat-app/assets/123546076/9deca938-b479-4d3d-b6a7-be13993df951)
