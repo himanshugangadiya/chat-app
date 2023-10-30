@@ -1,6 +1,8 @@
 # chat_app
 
-A new Flutter project.
+Authentication
+
+![Blue Pink Gradient Fashion Banner](https://github.com/himanshugangadiya/chat-app/assets/123546076/9deca938-b479-4d3d-b6a7-be13993df951)
 
 
 ## Getting Started
