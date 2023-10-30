@@ -4,6 +4,10 @@ Authentication
 
 ![Blue Pink Gradient Fashion Banner](https://github.com/himanshugangadiya/chat-app/assets/123546076/9deca938-b479-4d3d-b6a7-be13993df951)
 
+Home
+
+![Blue Pink Gradient Fashion Banner (1)](https://github.com/himanshugangadiya/chat-app/assets/123546076/6939eb71-78b5-4c40-96a7-581a8ffdd0f8)
+
 
 ## Getting Started
 
