@@ -8,6 +8,10 @@ Home
 
 ![Blue Pink Gradient Fashion Banner (1)](https://github.com/himanshugangadiya/chat-app/assets/123546076/6939eb71-78b5-4c40-96a7-581a8ffdd0f8)
 
+Profile
+
+![Blue Pink Gradient Fashion Banner (2)](https://github.com/himanshugangadiya/chat-app/assets/123546076/f08ccfdb-0db2-4b70-bc70-9cb0fefff2e1)
+
 
 ## Getting Started
 
