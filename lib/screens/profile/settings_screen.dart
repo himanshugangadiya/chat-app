@@ -54,17 +54,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ListTile(
                     onTap: () {
-                      settingController.privacyPolicy();
-                    },
-                    leading: const Icon(Icons.lock),
-                    title: const Text("Privacy policy"),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 17,
-                    ),
-                  ),
-                  ListTile(
-                    onTap: () {
                       Get.to(
                         () => const ChangePasswordScreen(),
                         duration: const Duration(

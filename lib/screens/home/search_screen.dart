@@ -117,67 +117,65 @@ class _SearchScreenState extends State<SearchScreen> {
                       return Center(
                         child: Text(snapshot.error.toString()),
                       );
-                    } else {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Container();
-                      } else {
-                        List responseData = snapshot.data!.docs;
-                        List response = responseData
-                            .where((element) => element["name"]
-                                .toString()
-                                .toLowerCase()
-                                .contains(searchText.toString().toLowerCase()))
-                            .toList();
-                        return ListView.builder(
-                          itemCount: response.length,
-                          padding: EdgeInsets.symmetric(
-                            vertical: height * 0.02,
-                          ),
-                          itemBuilder: (context, index) {
-                            var data = response[index];
-                            return ListTile(
-                              onTap: () async {
-                                ChatRoomModel? chatRoomModel =
-                                    await createChatRoom(data.data()["uId"]);
+                    } else if (snapshot.hasData) {
+                      List responseData = snapshot.data!.docs;
+                      List response = responseData
+                          .where((element) => element["name"]
+                              .toString()
+                              .toLowerCase()
+                              .contains(searchText.toString().toLowerCase()))
+                          .toList();
+                      return ListView.builder(
+                        itemCount: response.length,
+                        padding: EdgeInsets.symmetric(
+                          vertical: height * 0.02,
+                        ),
+                        itemBuilder: (context, index) {
+                          var data = response[index];
+                          return ListTile(
+                            onTap: () async {
+                              ChatRoomModel? chatRoomModel =
+                                  await createChatRoom(data.data()["uId"]);
 
-                                if (chatRoomModel != null) {
-                                  log("chateRoomModel is not null");
-                                  Get.back();
-                                  Get.to(
-                                    () => ChatScreen(
-                                      chatRoomModel: chatRoomModel,
-                                      targetUserName: data["name"].toString(),
-                                      targetUserPhotoUrl:
-                                          data["profile_picture"].toString(),
-                                    ),
-                                  );
-                                } else {
-                                  log("chatRoomModel is Null");
-                                }
-                              },
-                              leading: data["profile_picture"] != ''
-                                  ? CircleAvatar(
-                                      backgroundImage: NetworkImage(
+                              if (chatRoomModel != null) {
+                                log("chateRoomModel is not null");
+                                Get.back();
+                                Get.to(
+                                  () => ChatScreen(
+                                    chatRoomModel: chatRoomModel,
+                                    targetUserName: data["name"].toString(),
+                                    targetUserPhotoUrl:
                                         data["profile_picture"].toString(),
-                                      ),
-                                    )
-                                  : CircleAvatar(
-                                      backgroundColor: AppColor.blue,
-                                      child: Text(
-                                        data["name"]
-                                            .toString()[0]
-                                            .toUpperCase(),
-                                        style: const TextStyle(
-                                          color: AppColor.white,
-                                        ),
+                                  ),
+                                  duration: const Duration(milliseconds: 500),
+                                  transition: Transition.rightToLeftWithFade,
+                                );
+                              } else {
+                                log("chatRoomModel is Null");
+                              }
+                            },
+                            leading: data["profile_picture"] != ''
+                                ? CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      data["profile_picture"].toString(),
+                                    ),
+                                  )
+                                : CircleAvatar(
+                                    backgroundColor: AppColor.blue,
+                                    child: Text(
+                                      data["name"].toString()[0].toUpperCase(),
+                                      style: const TextStyle(
+                                        color: AppColor.white,
                                       ),
                                     ),
-                              title: Text(data["name"].toString()),
-                              subtitle: Text(data["email"].toString()),
-                            );
-                          },
-                        );
-                      }
+                                  ),
+                            title: Text(data["name"].toString()),
+                            subtitle: Text(data["email"].toString()),
+                          );
+                        },
+                      );
+                    } else {
+                      return Container();
                     }
                   },
                 ),

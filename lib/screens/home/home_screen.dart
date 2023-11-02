@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:chat_app/screens/home/search_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +25,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   HomeController homeController = Get.put(HomeController());
   LogInController logInController = Get.put(LogInController());
 
@@ -50,342 +52,385 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     double height = MediaQuery.sizeOf(context).height;
     double width = MediaQuery.sizeOf(context).width;
-    return SafeArea(
-      child: Material(
-        child: Scaffold(
-          body: isLoading
-              ? const CommonCircularProgressIndicator()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// header
-                    CommonHeaderWidget(
-                      height: height,
-                      width: width,
-                    ),
+    return WillPopScope(
+      onWillPop: () async {
+        return exitDialog(context: context);
+      },
+      child: SafeArea(
+        child: Material(
+          child: Scaffold(
+            body: isLoading
+                ? const CommonCircularProgressIndicator()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// header
+                      CommonHeaderWidget(
+                        height: height,
+                        width: width,
+                      ),
 
-                    /// search
-                    SearchTextFieldWidget(
-                      width: width,
-                      homeController: homeController,
-                    ),
+                      /// search
+                      SearchTextFieldWidget(
+                        width: width,
+                        homeController: homeController,
+                      ),
 
-                    SizedBox(
-                      height: height * 0.02,
-                    ),
+                      SizedBox(
+                        height: height * 0.02,
+                      ),
 
-                    SizedBox(
-                      height: height * 0.01,
-                    ),
+                      SizedBox(
+                        height: height * 0.01,
+                      ),
 
-                    /// chat list
-                    StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection("chatRoom")
-                          .where(
-                            "users",
-                            arrayContains: logInController.currentUserId(),
-                          )
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(snapshot.error.toString()),
-                          );
-                        } else {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const CommonCircularProgressIndicator();
+                      /// chat list
+                      StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection("chatRoom")
+                            .where(
+                              "users",
+                              arrayContains: logInController.currentUserId(),
+                            )
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(snapshot.error.toString()),
+                            );
                           } else {
-                            List res = snapshot.data!.docs.reversed.toList();
-                            return res.isNotEmpty
-                                ? Expanded(
-                                    child: ListView.builder(
-                                      itemCount: res.length,
-                                      physics: const BouncingScrollPhysics(),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: width * 0.05,
-                                      ),
-                                      itemBuilder: (context, index) {
-                                        var data = res[index].data();
-                                        ChatRoomModel chatRoomModel =
-                                            ChatRoomModel.fromMap(
-                                                data as Map<String, dynamic>);
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CommonCircularProgressIndicator();
+                            } else {
+                              List res = snapshot.data!.docs.reversed.toList();
+                              return res.isNotEmpty
+                                  ? Expanded(
+                                      child: ListView.builder(
+                                        itemCount: res.length,
+                                        physics: const BouncingScrollPhysics(),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: width * 0.05,
+                                        ),
+                                        itemBuilder: (context, index) {
+                                          var data = res[index].data();
+                                          ChatRoomModel chatRoomModel =
+                                              ChatRoomModel.fromMap(
+                                                  data as Map<String, dynamic>);
 
-                                        Map participantsMap =
-                                            chatRoomModel.participants;
-                                        List participantsList =
-                                            participantsMap.keys.toList();
-                                        participantsList.remove(
-                                            logInController.currentUserId());
-                                        return data.isNotEmpty
+                                          Map participantsMap =
+                                              chatRoomModel.participants;
+                                          List participantsList =
+                                              participantsMap.keys.toList();
+                                          participantsList.remove(
+                                              logInController.currentUserId());
+                                          return data.isNotEmpty
 
-                                            /// return widget
-                                            ? FutureBuilder(
-                                                future: FirebaseHelper()
-                                                    .getUserById(
-                                                        participantsList[0]),
-                                                builder: (context, snapshot) {
-                                                  var date = DateTime
-                                                      .fromMillisecondsSinceEpoch(
-                                                    chatRoomModel
-                                                        .lastMessageTime!
-                                                        .millisecondsSinceEpoch,
-                                                  );
-                                                  if (snapshot.hasData) {
-                                                    UserModel userModel =
-                                                        snapshot.data
-                                                            as UserModel;
+                                              /// return widget
+                                              ? FutureBuilder(
+                                                  future: FirebaseHelper()
+                                                      .getUserById(
+                                                          participantsList[0]),
+                                                  builder: (context, snapshot) {
+                                                    var date = DateTime
+                                                        .fromMillisecondsSinceEpoch(
+                                                      chatRoomModel
+                                                          .lastMessageTime!
+                                                          .millisecondsSinceEpoch,
+                                                    );
+                                                    if (snapshot.hasData) {
+                                                      UserModel userModel =
+                                                          snapshot.data
+                                                              as UserModel;
 
-                                                    return Padding(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                        vertical:
-                                                            height * 0.008,
-                                                      ),
-                                                      child: GestureDetector(
-                                                        onTap: () {
-                                                          Get.to(
-                                                            ChatScreen(
+                                                      return Padding(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                          vertical:
+                                                              height * 0.008,
+                                                        ),
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            Get.to(
+                                                              ChatScreen(
+                                                                chatRoomModel:
+                                                                    chatRoomModel,
+                                                                targetUserName:
+                                                                    userModel
+                                                                        .name
+                                                                        .toString(),
+                                                                targetUserPhotoUrl:
+                                                                    userModel
+                                                                        .profilePicture
+                                                                        .toString(),
+                                                              ),
+                                                              duration:
+                                                                  const Duration(
+                                                                milliseconds:
+                                                                    500,
+                                                              ),
+                                                              transition:
+                                                                  Transition
+                                                                      .native,
+                                                            );
+                                                          },
+                                                          onLongPress: () {
+                                                            deleteChatDialog(
+                                                              context: context,
                                                               chatRoomModel:
                                                                   chatRoomModel,
-                                                              targetUserName:
-                                                                  userModel.name
-                                                                      .toString(),
-                                                              targetUserPhotoUrl:
-                                                                  userModel
-                                                                      .profilePicture
-                                                                      .toString(),
-                                                            ),
-                                                            duration:
-                                                                const Duration(
-                                                              milliseconds: 500,
-                                                            ),
-                                                            transition:
-                                                                Transition
-                                                                    .native,
-                                                          );
-                                                        },
-                                                        onLongPress: () {
-                                                          deleteChatDialog(
-                                                            context: context,
-                                                            chatRoomModel:
-                                                                chatRoomModel,
-                                                            homeController:
-                                                                homeController,
-                                                          );
-                                                        },
-                                                        child: Column(
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                ClipOval(
-                                                                  child:
-                                                                      CircleAvatar(
-                                                                    radius: 28,
-                                                                    backgroundColor:
-                                                                        Colors
-                                                                            .blue,
-                                                                    child: userModel.profilePicture !=
-                                                                            ''
-                                                                        ? CommonCacheNetworkImage(
-                                                                            imageUrl:
-                                                                                userModel.profilePicture.toString(),
-                                                                          )
-                                                                        : Text(
-                                                                            userModel.name![0].toUpperCase().toString(),
-                                                                            style:
-                                                                                const TextStyle(
-                                                                              color: AppColor.white,
-                                                                              fontSize: 19,
-                                                                            ),
-                                                                          ),
-                                                                  ),
-                                                                ),
-                                                                SizedBox(
-                                                                  width: width *
-                                                                      0.025,
-                                                                ),
-                                                                Expanded(
-                                                                  child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
-                                                                    children: [
-                                                                      Row(
-                                                                        children: [
-                                                                          Expanded(
-                                                                            child:
-                                                                                Text(
-                                                                              "${userModel.name.toString()[0].toUpperCase()}${userModel.name.toString().substring(1).toString()}",
-                                                                              style: const TextStyle(
-                                                                                fontWeight: FontWeight.w600,
-                                                                              ),
-                                                                              maxLines: 1,
-                                                                            ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      SizedBox(
-                                                                        height: height *
-                                                                            0.002,
-                                                                        width: double
-                                                                            .infinity,
-                                                                      ),
-                                                                      chatRoomModel.lastMessage !=
+                                                              homeController:
+                                                                  homeController,
+                                                            );
+                                                          },
+                                                          child: Column(
+                                                            children: [
+                                                              Row(
+                                                                children: [
+                                                                  ClipOval(
+                                                                    child:
+                                                                        CircleAvatar(
+                                                                      radius:
+                                                                          28,
+                                                                      backgroundColor:
+                                                                          Colors
+                                                                              .blue,
+                                                                      child: userModel.profilePicture !=
                                                                               ''
-                                                                          ? Row(
-                                                                              children: [
-                                                                                Expanded(
-                                                                                  child: Text(
-                                                                                    chatRoomModel.lastMessage.toString(),
-                                                                                    style: const TextStyle(
-                                                                                      color: AppColor.grey,
-                                                                                    ),
-                                                                                    maxLines: 1,
-                                                                                  ),
-                                                                                ),
-                                                                              ],
+                                                                          ? CommonCacheNetworkImage(
+                                                                              imageUrl: userModel.profilePicture.toString(),
                                                                             )
-                                                                          : const Row(
-                                                                              children: [
-                                                                                Expanded(
-                                                                                  child: Text(
-                                                                                    "Say! hi to your frd",
-                                                                                    style: TextStyle(
-                                                                                      color: Colors.blue,
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                                StreamBuilder(
-                                                                  stream: FirebaseFirestore
-                                                                      .instance
-                                                                      .collection(
-                                                                          "chatRoom")
-                                                                      .doc(chatRoomModel
-                                                                          .id)
-                                                                      .collection(
-                                                                          "message")
-                                                                      .snapshots(),
-                                                                  builder: (context,
-                                                                      snapshot) {
-                                                                    if (snapshot
-                                                                        .hasError) {
-                                                                      return Center(
-                                                                        child:
-                                                                            Text(
-                                                                          snapshot
-                                                                              .error
-                                                                              .toString(),
-                                                                        ),
-                                                                      );
-                                                                    } else {
-                                                                      if (snapshot
-                                                                          .hasData) {
-                                                                        var res = snapshot
-                                                                            .data!
-                                                                            .docs;
-                                                                        List unseenData = res
-                                                                            .where((element) => element["sender"].toString() != logInController.currentUserId())
-                                                                            .where(
-                                                                              (element) => element["isSeen"] == false,
-                                                                            )
-                                                                            .toList();
-
-                                                                        return Column(
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.end,
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.center,
-                                                                          children: [
-                                                                            date.day == DateTime.now().day && date.month == DateTime.now().month
-                                                                                ? Text(
-                                                                                    DateFormat("hh:mm a").format(date).toString(),
-                                                                                    style: TextStyle(
-                                                                                      color: unseenData.isEmpty ? AppColor.grey : AppColor.blue,
-                                                                                    ),
-                                                                                    maxLines: 1,
-                                                                                  )
-                                                                                : Text(
-                                                                                    DateFormat("dd/MM/yy").format(date).toString(),
-                                                                                    style: TextStyle(
-                                                                                      color: unseenData.isEmpty ? AppColor.grey : AppColor.blue,
-                                                                                    ),
-                                                                                    maxLines: 1,
-                                                                                  ),
-                                                                            SizedBox(
-                                                                              height: height * 0.002,
-                                                                            ),
-                                                                            CircleAvatar(
-                                                                              radius: 10,
-                                                                              backgroundColor: unseenData.length != 0 ? AppColor.blue : Colors.transparent,
-                                                                              child: FittedBox(
-                                                                                child: Text(
-                                                                                  unseenData.length.toString(),
-                                                                                  style: TextStyle(
-                                                                                    color: unseenData.length != 0 ? AppColor.white : Colors.transparent,
-                                                                                  ),
-                                                                                  maxLines: 1,
-                                                                                ),
+                                                                          : Text(
+                                                                              userModel.name![0].toUpperCase().toString(),
+                                                                              style: const TextStyle(
+                                                                                color: AppColor.white,
+                                                                                fontSize: 19,
                                                                               ),
-                                                                            )
+                                                                            ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                    width: width *
+                                                                        0.025,
+                                                                  ),
+                                                                  Expanded(
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      children: [
+                                                                        Row(
+                                                                          children: [
+                                                                            Expanded(
+                                                                              child: Text(
+                                                                                "${userModel.name.toString()[0].toUpperCase()}${userModel.name.toString().substring(1).toString()}",
+                                                                                style: const TextStyle(
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                ),
+                                                                                maxLines: 1,
+                                                                              ),
+                                                                            ),
                                                                           ],
+                                                                        ),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              height * 0.002,
+                                                                          width:
+                                                                              double.infinity,
+                                                                        ),
+                                                                        chatRoomModel.lastMessage !=
+                                                                                ''
+                                                                            ? Row(
+                                                                                children: [
+                                                                                  Expanded(
+                                                                                    child: Text(
+                                                                                      chatRoomModel.lastMessage.toString(),
+                                                                                      style: const TextStyle(
+                                                                                        color: AppColor.grey,
+                                                                                      ),
+                                                                                      maxLines: 1,
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              )
+                                                                            : const Row(
+                                                                                children: [
+                                                                                  Expanded(
+                                                                                    child: Text(
+                                                                                      "Say! hi to your frd",
+                                                                                      style: TextStyle(
+                                                                                        color: Colors.blue,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  StreamBuilder(
+                                                                    stream: FirebaseFirestore
+                                                                        .instance
+                                                                        .collection(
+                                                                            "chatRoom")
+                                                                        .doc(chatRoomModel
+                                                                            .id)
+                                                                        .collection(
+                                                                            "message")
+                                                                        .snapshots(),
+                                                                    builder:
+                                                                        (context,
+                                                                            snapshot) {
+                                                                      if (snapshot
+                                                                          .hasError) {
+                                                                        return Center(
+                                                                          child:
+                                                                              Text(
+                                                                            snapshot.error.toString(),
+                                                                          ),
                                                                         );
                                                                       } else {
-                                                                        return Container();
+                                                                        if (snapshot
+                                                                            .hasData) {
+                                                                          var res = snapshot
+                                                                              .data!
+                                                                              .docs;
+                                                                          List unseenData = res
+                                                                              .where((element) => element["sender"].toString() != logInController.currentUserId())
+                                                                              .where(
+                                                                                (element) => element["isSeen"] == false,
+                                                                              )
+                                                                              .toList();
+
+                                                                          return Column(
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.end,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.center,
+                                                                            children: [
+                                                                              date.day == DateTime.now().day && date.month == DateTime.now().month
+                                                                                  ? Text(
+                                                                                      DateFormat("hh:mm a").format(date).toString(),
+                                                                                      style: TextStyle(
+                                                                                        color: unseenData.isEmpty ? AppColor.grey : AppColor.blue,
+                                                                                      ),
+                                                                                      maxLines: 1,
+                                                                                    )
+                                                                                  : Text(
+                                                                                      DateFormat("dd/MM/yy").format(date).toString(),
+                                                                                      style: TextStyle(
+                                                                                        color: unseenData.isEmpty ? AppColor.grey : AppColor.blue,
+                                                                                      ),
+                                                                                      maxLines: 1,
+                                                                                    ),
+                                                                              SizedBox(
+                                                                                height: height * 0.002,
+                                                                              ),
+                                                                              CircleAvatar(
+                                                                                radius: 10,
+                                                                                backgroundColor: unseenData.length != 0 ? AppColor.blue : Colors.transparent,
+                                                                                child: FittedBox(
+                                                                                  child: Text(
+                                                                                    unseenData.length.toString(),
+                                                                                    style: TextStyle(
+                                                                                      color: unseenData.length != 0 ? AppColor.white : Colors.transparent,
+                                                                                    ),
+                                                                                    maxLines: 1,
+                                                                                  ),
+                                                                                ),
+                                                                              )
+                                                                            ],
+                                                                          );
+                                                                        } else {
+                                                                          return Container();
+                                                                        }
                                                                       }
-                                                                    }
-                                                                  },
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            const Divider(
-                                                              indent: 67,
-                                                            ),
-                                                          ],
+                                                                    },
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              const Divider(
+                                                                indent: 67,
+                                                              ),
+                                                            ],
+                                                          ),
                                                         ),
-                                                      ),
-                                                    );
-                                                  } else if (snapshot
-                                                      .hasError) {
-                                                    return Center(
-                                                      child: Text(snapshot.error
-                                                          .toString()),
-                                                    );
-                                                  } else {
-                                                    return Container();
-                                                  }
-                                                },
-                                              )
-                                            : Container();
-                                      },
-                                    ),
-                                  )
-                                : const Expanded(
-                                    child: Center(
-                                      child: Text("No messages"),
-                                    ),
-                                  );
+                                                      );
+                                                    } else if (snapshot
+                                                        .hasError) {
+                                                      return Center(
+                                                        child: Text(snapshot
+                                                            .error
+                                                            .toString()),
+                                                      );
+                                                    } else {
+                                                      return Container();
+                                                    }
+                                                  },
+                                                )
+                                              : Container();
+                                        },
+                                      ),
+                                    )
+                                  : const Expanded(
+                                      child: Center(
+                                        child: Text("No messages"),
+                                      ),
+                                    );
+                            }
                           }
-                        }
-                      },
-                    ),
-                    SizedBox(
-                      height: height * 0.01,
-                    ),
-                  ],
-                ),
+                        },
+                      ),
+                      SizedBox(
+                        height: height * 0.01,
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
+  }
+
+  Future<bool> exitDialog({
+    required BuildContext context,
+  }) async {
+    return await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Are you sure you want to exit?",
+                  ),
+                ],
+              ),
+              actions: [
+                MaterialButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  color: AppColor.grey,
+                  child: const Text("No"),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    exit(0);
+                  },
+                  color: AppColor.blue,
+                  child: const Text("Yes"),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:chat_app/controller/chat_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,47 +30,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  TextEditingController messageController = TextEditingController();
-  var uuid = const Uuid();
-
-  sendMessage() {
-    String newMsgId = uuid.v1();
-    if (messageController.text.trim().isNotEmpty &&
-        messageController.text.trim() != '') {
-      try {
-        FirebaseFirestore.instance
-            .collection("chatRoom")
-            .doc(widget.chatRoomModel.id.toString())
-            .collection("message")
-            .doc(newMsgId)
-            .set({
-          "time": Timestamp.fromMillisecondsSinceEpoch(
-              DateTime.now().millisecondsSinceEpoch),
-          "message": messageController.text.trim().toString(),
-          "messageId": newMsgId,
-          "sender": FirebaseAuth.instance.currentUser!.uid.toString(),
-          "isSeen": false,
-        }).then((value) async {
-          await FirebaseFirestore.instance
-              .collection("chatRoom")
-              .doc(widget.chatRoomModel.id)
-              .update({
-            "last_message": messageController.text.trim().toString(),
-            "last_message_time": Timestamp.fromMillisecondsSinceEpoch(
-                DateTime.now().millisecondsSinceEpoch),
-          });
-          messageController.clear();
-        });
-      } on FirebaseException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message.toString()),
-          ),
-        );
-      }
-    }
-  }
-
+  ChatController chatController = Get.put(ChatController());
   @override
   void initState() {
     // TODO: implement initState
@@ -332,7 +293,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                             .start,
                                                 children: [
                                                   Text(
-                                                    DateFormat("hh:mm").format(
+                                                    DateFormat("hh:mm a")
+                                                        .format(
                                                       DateTime
                                                           .fromMicrosecondsSinceEpoch(
                                                         data["time"]
@@ -368,11 +330,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ),
                                         OutlinedButton(
                                           onPressed: () {
-                                            messageController =
+                                            chatController.messageController =
                                                 TextEditingController(
-                                              text: "hello",
+                                              text: "Hello",
                                             );
-                                            sendMessage();
+                                            chatController.sendMessage(
+                                              chatRoomModelId: widget
+                                                  .chatRoomModel.id
+                                                  .toString(),
+                                            );
+                                            setState(() {});
                                           },
                                           style: OutlinedButton.styleFrom(
                                             shape: const StadiumBorder(),
@@ -402,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Container(
                         color: Colors.grey.withOpacity(0.4),
                         child: TextField(
-                          controller: messageController,
+                          controller: chatController.messageController,
                           decoration: const InputDecoration(
                             contentPadding:
                                 EdgeInsets.symmetric(horizontal: 20),
@@ -419,7 +386,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      sendMessage();
+                      chatController.sendMessage(
+                        chatRoomModelId: widget.chatRoomModel.id.toString(),
+                      );
                     },
                     icon: const Icon(
                       Icons.telegram_outlined,
